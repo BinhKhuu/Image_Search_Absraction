@@ -1,0 +1,24 @@
+{
+  "name": "image_search_abstraction",
+  "version": "0.0.1",
+  "description": "im search abstraction",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/spoonable/Image_Search_Absraction.git"
+  },
+  "author": "binh khuu",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/spoonable/Image_Search_Absraction/issues"
+  },
+  "homepage": "https://github.com/spoonable/Image_Search_Absraction#readme",
+  "private": true,
+  "dependencies": {
+    "express": "^4.16.2",
+    "mongoose": "^4.12.1"
+  }
+}
