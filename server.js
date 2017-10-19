@@ -1,4 +1,5 @@
 var express = require('express');
+var image = require('./image.js');
 var https = require('https');
 var mongoose = require('mongoose');
 var config = require('./model/config.js');
@@ -17,19 +18,22 @@ app.get('/',(req,res)=>{
 	res.sendFile(path.join(__dirname + '/public/index.html'));
 });
 
-app.get('/:searchTerm([a-zA-Z0-9_]+)',(request,result)=>{
+
+app.get('/imagesearch/:searchTerm([a-zA-Z0-9_]+)',(req,res)=>{
 	//nojsoncallback=1 returns raw json with no function wrapper
 	//without it you have to replace the function wrapper jsonFlickrApi
 	//!!!!!!!!!!change name and location later
 	//!!!!!!!! remember to set up heroku globals when deployed
+	var offset = req.query.offset;
+	if(!offset) offset = 0;
 	var apiKey = process.env.FLICKER_API_KEY;
 	var baseUrl = 'https://api.flickr.com/' + 
 								'services/rest/?method=flickr.photos.search' + 
 								'&api_key='+ apiKey +
-								'&text='+ request.params.searchTerm + '&format=json&nojsoncallback=1';
+								'&text='+ req.params.searchTerm + '&format=json&nojsoncallback=1';
 	var searchOBJ;
 	var images = [];
-	//!!!!!!!!! check for errors like incorrect api key
+	//!!!!!!!!!add searchterm to history
 	https.get(baseUrl, (httpsRes)=>{
 		var body = "";
 		httpsRes.on('data', (chunk)=>{
@@ -37,32 +41,24 @@ app.get('/:searchTerm([a-zA-Z0-9_]+)',(request,result)=>{
 		});
 		httpsRes.on('end',()=>{
 			searchOBJ = JSON.parse(body);
-			images = createImage(10,searchOBJ);
-			result.end(JSON.stringify(images));
+			images = image.createImage(offset,searchOBJ);
+			res.json(images);
+			res.end();
+			//res.end(JSON.stringify(images));
 		});
 	}).on('error',(err)=>{
 		console.log('ERROR! ', err);
 	});
 });
 
+//search history
+app.get('/history',(req,res)=>{
+
+});
+
 app.listen(port,(err)=>{
 	if(err) console.log(err);
 	console.log('listening on port: ' + port.toString());
 });
-//route /image search
 
-function createImage (limit, searchOBJ) {
-	if(typeof(limit) == 'undefined') limit = 20;
-	var images = []
-	for(var i = 0; i < limit; i++){
-		var imageOBJ = {'url': '','snippit': ''}; 
-		imageOBJ.url =	'https://farm' + searchOBJ.photos.photo[i].farm.toString() + 
-									 	'.staticflickr.com/' + 
-									 	searchOBJ.photos.photo[i].server.toString() + '/' + 
-									 	searchOBJ.photos.photo[i].id.toString() + '_' + 
-									 	searchOBJ.photos.photo[i].secret.toString() + '.jpg';
-		imageOBJ.snippit = searchOBJ.photos.photo[i].title;
-		images.push(imageOBJ);
-	}
-	return images;
-}
+
