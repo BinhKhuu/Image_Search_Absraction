@@ -1,5 +1,6 @@
 var express = require('express');
-var image = require('./image.js');
+var History = require('./data/history.js');
+var image = require('./lib/image.js');
 var https = require('https');
 var mongoose = require('mongoose');
 var config = require('./model/config.js');
@@ -9,17 +10,17 @@ var port = Number(process.env.PORT || 8080);
 app.use(express.static(path.join(__dirname, 'public')));
 
 //connect to db
-mongoose.connect(config.db.url, (err,db)=>{
+mongoose.connect(config.db.url, function(err,db){
 	if(err) console.log(err);
 	console.log('MongoDB connected on '+ config.db.url);
 });
 //route / path
-app.get('/',(req,res)=>{
+app.get('/',function(req,res){
 	res.sendFile(path.join(__dirname + '/public/index.html'));
 });
 
 
-app.get('/imagesearch/:searchTerm([a-zA-Z0-9_]+)',(req,res)=>{
+app.get('/imagesearch/:searchTerm([a-zA-Z0-9_]+)',function(req,res){
 	//nojsoncallback=1 returns raw json with no function wrapper
 	//without it you have to replace the function wrapper jsonFlickrApi
 	//!!!!!!!!!!change name and location later
@@ -33,7 +34,12 @@ app.get('/imagesearch/:searchTerm([a-zA-Z0-9_]+)',(req,res)=>{
 								'&text='+ req.params.searchTerm + '&format=json&nojsoncallback=1';
 	var searchOBJ;
 	var images = [];
-	//!!!!!!!!!add searchterm to history
+	//save searchterm to history
+	var history = History({query: req.params.searchTerm});
+	history.save((err)=>{
+		if(err) console.log(err);
+		console.log('history saved');
+	});
 	https.get(baseUrl, (httpsRes)=>{
 		var body = "";
 		httpsRes.on('data', (chunk)=>{
@@ -52,11 +58,20 @@ app.get('/imagesearch/:searchTerm([a-zA-Z0-9_]+)',(req,res)=>{
 });
 
 //search history
-app.get('/history',(req,res)=>{
-
+app.get('/history',function(req,res){
+	var searchHistory = [];
+	var query = History.find({_id:{$gt: 0}});
+	query.limit(1000);
+	query.exec(function(err, history){
+		if(err) return console.log(err);
+		for(var i = 0; i < history.length; i++){
+			searchHistory.push(history[i].query);
+		}
+		res.json(searchHistory);
+	});
 });
 
-app.listen(port,(err)=>{
+app.listen(port,function(err){
 	if(err) console.log(err);
 	console.log('listening on port: ' + port.toString());
 });
