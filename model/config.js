@@ -1,10 +1,9 @@
 var config = {};
 config.db = {};
 //change this when app is launched
-config.webhost = 'localhost:8080/';
-//remember to set heroku enviroment variable when lanuched
-//export MONGOLAB_URI="mongodb://etc"
+config.webhost = 'https://stormy-anchorage-75509.herokuapp.com/';
 config.db.url = process.env.MONGOLAB_URI;
 
 
 module.exports = config;
+

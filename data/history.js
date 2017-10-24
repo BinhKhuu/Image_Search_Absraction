@@ -11,7 +11,6 @@ var HistorySchema = new Schema({
 	_id: {type: Number, index: true},
 	query: String
 });
-//a hooks (arrow function) do not have lexical scope, use function insead of => if you want to use this
 HistorySchema.pre('save',function(next){
 	var doc = this;
 	counter.findByIdAndUpdate({_id:'history_count'}, {$inc: {seq: 1}}, function(err,counter){
@@ -20,7 +19,6 @@ HistorySchema.pre('save',function(next){
 		next();
 	});
 });
-
 var History = mongoose.model('History', HistorySchema);
 
 module.exports = History;

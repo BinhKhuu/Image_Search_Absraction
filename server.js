@@ -9,22 +9,18 @@ var app = express();
 var port = Number(process.env.PORT || 8080);
 app.use(express.static(path.join(__dirname, 'public')));
 
-//connect to db
 mongoose.connect(config.db.url, function(err,db){
 	if(err) console.log(err);
 	console.log('MongoDB connected on '+ config.db.url);
 });
-//route / path
 app.get('/',function(req,res){
 	res.sendFile(path.join(__dirname + '/public/index.html'));
 });
 
-
+//image search route
 app.get('/imagesearch/:searchTerm([a-zA-Z0-9_]+)',function(req,res){
 	//nojsoncallback=1 returns raw json with no function wrapper
 	//without it you have to replace the function wrapper jsonFlickrApi
-	//!!!!!!!!!!change name and location later
-	//!!!!!!!! remember to set up heroku globals when deployed
 	var offset = req.query.offset;
 	if(!offset) offset = 0;
 	var apiKey = process.env.FLICKER_API_KEY;
@@ -50,14 +46,13 @@ app.get('/imagesearch/:searchTerm([a-zA-Z0-9_]+)',function(req,res){
 			images = image.createImage(offset,searchOBJ);
 			res.json(images);
 			res.end();
-			//res.end(JSON.stringify(images));
 		});
 	}).on('error',(err)=>{
 		console.log('ERROR! ', err);
 	});
 });
 
-//search history
+//history route 
 app.get('/history',function(req,res){
 	var searchHistory = [];
 	var query = History.find({_id:{$gt: 0}});
